@@ -37,10 +37,8 @@ public extension Data {
         var value = fromObject
         let valueSize = MemoryLayout.size(ofValue: value)
         
-        self = withUnsafePointer(to: &value) { (ptr) -> Data in
-            return ptr.withMemoryRebound(to: UInt8.self, capacity: valueSize) { (ptr) -> Data in
-                Data(bytes: ptr, count: valueSize)
-            }
+        self = withUnsafePointer(to: &value) { ptr in
+            Data(bytes: UnsafeRawPointer(ptr).assumingMemoryBound(to: UInt8.self), count: valueSize)
         }
     }
     
@@ -67,11 +65,8 @@ public extension Data {
             fatalError("Tried to read out of bounds!")
         }
         
-        let data = Array<UInt8>(self)
-        return data.withUnsafeBufferPointer { (ptr) -> Object in
-            return ptr.baseAddress!.advanced(by: Int(offset)).withMemoryRebound(to:Object.self, capacity: 1) { (ptr) -> Object in
-                return ptr.pointee
-            }
+        return withUnsafeBytes { ptr in
+            ptr.baseAddress!.advanced(by: Int(offset)).assumingMemoryBound(to: Object.self).pointee
         }
     }
     
@@ -87,11 +82,8 @@ public extension Data {
             return nil
         }
         
-        let data = Array<UInt8>(self)
-        return data.withUnsafeBufferPointer { (ptr) -> Object in
-            return ptr.baseAddress!.advanced(by: Int(offset)).withMemoryRebound(to:Object.self, capacity: 1) { (ptr) -> Object in
-                return ptr.pointee
-            }
+        return withUnsafeBytes { ptr in
+            ptr.baseAddress!.advanced(by: Int(offset)).assumingMemoryBound(to: Object.self).pointee
         }
     }
     
